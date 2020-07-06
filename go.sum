@@ -252,8 +252,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/etclabscore/go-jsonschema-walk v0.0.6 h1:DrNzoKWKd8f8XB5nFGBY00IcjakRE22OTI12k+2LkyY=
 github.com/etclabscore/go-jsonschema-walk v0.0.6/go.mod h1:VdfDY72AFAiUhy0ZXEaWSpveGjMT5JcDIm903NGqFwQ=
-github.com/etclabscore/go-openrpc-reflect v0.0.31 h1:cqTZefi/ayr4azVS1ebvFpkrQt64RzCqS6QgAFLjIuA=
-github.com/etclabscore/go-openrpc-reflect v0.0.31/go.mod h1:u0gJCVptf39zzvLn1W/TdoeuPQ+Usz1eo5dCc9/DZLE=
+github.com/etclabscore/go-openrpc-reflect v0.0.32 h1:ircPo/E3Jxr9REUE08In8IPBvRlmDfXyKF+ra2d7niY=
+github.com/etclabscore/go-openrpc-reflect v0.0.32/go.mod h1:u0gJCVptf39zzvLn1W/TdoeuPQ+Usz1eo5dCc9/DZLE=
 github.com/ethereum/go-ethereum v1.9.12 h1:EPtimwsp/KGDSiXcNunzsI4kefdsMHZGJntKx3fvbaI=
 github.com/ethereum/go-ethereum v1.9.12/go.mod h1:PvsVkQmhZFx92Y+h2ylythYlheEDt/uBgFbl61Js/jo=
 github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5 h1:BBso6MBKW8ncyZLv37o+KNyy0HrrHgfnOaGQC2qvN+A=

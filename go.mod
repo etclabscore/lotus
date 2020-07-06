@@ -14,8 +14,7 @@ require (
 	github.com/docker/go-units v0.4.0
 	github.com/drand/drand v0.9.2-0.20200616080806-a94e9c1636a4
 	github.com/drand/kyber v1.1.0
-	github.com/etclabscore/go-openrpc-reflect v0.0.31
-	github.com/ethereum/go-ethereum v1.9.12
+	github.com/etclabscore/go-openrpc-reflect v0.0.32
 	github.com/fatih/color v1.8.0
 	github.com/filecoin-project/chain-validation v0.0.6-0.20200615191232-6be1a8c6ed09
 	github.com/filecoin-project/filecoin-ffi v0.26.1-0.20200508175440-05b30afeb00d
