@@ -24,6 +24,7 @@ type FullNodeAPI struct {
 	full.MsigAPI
 	full.WalletAPI
 	full.SyncAPI
+	common.RPCSystemExtensionAPI
 }
 
 var _ api.FullNode = &FullNodeAPI{}

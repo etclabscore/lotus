@@ -155,7 +155,6 @@ func (a *CommonAPI) Closing(ctx context.Context) (<-chan struct{}, error) {
 	return make(chan struct{}), nil // relies on jsonrpc closing
 }
 
-// TODO(meowsbits): Add rpc_discover here?
 
 type RPCSystemExtensionAPI struct {}
 

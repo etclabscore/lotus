@@ -276,6 +276,10 @@ type RPCSystemExtensionStruct struct {
 	}
 }
 
+func (r *RPCSystemExtensionStruct) Discover (ctx context.Context) (*meta_schema.OpenrpcDocument, error) {
+	return r.Internal.Discover(ctx)
+}
+
 // CommonStruct
 
 func (c *CommonStruct) AuthVerify(ctx context.Context, token string) ([]auth.Permission, error) {
