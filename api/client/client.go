@@ -59,3 +59,19 @@ func NewWorkerRPC(addr string, requestHeader http.Header) (api.WorkerAPI, jsonrp
 
 	return &res, closer, err
 }
+
+// TODO(meowsbits): Add NewRPCRPC/Discovery/SystemExtension struct? eg. rpc_discover
+
+
+func NewRPCSystemExtensionRPC(addr straseting, requestHeader http.Header) (...) {
+	var res apistruc
+	closer, err := jsonrpc.NewMergeClient(addr, "rpc",
+		[]interface{}{
+			&res.Internal,
+		},
+		requestHeader,
+	)
+
+	return &res, closer, err
+}
+

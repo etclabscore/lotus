@@ -7,6 +7,7 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	meta_schema "github.com/open-rpc/meta-schema"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-fil-markets/storagemarket"
@@ -266,6 +267,12 @@ type WorkerStruct struct {
 		Fetch func(context.Context, abi.SectorID, stores.SectorFileType, stores.PathType, stores.AcquireMode) error `perm:"admin"`
 
 		Closing func(context.Context) (<-chan struct{}, error) `perm:"admin"`
+	}
+}
+
+type RPCSystemExtensionStruct struct {
+	Internal struct {
+		Discover func(context.Context) (*meta_schema.OpenrpcDocument, error) `perm:"read"`
 	}
 }
 
