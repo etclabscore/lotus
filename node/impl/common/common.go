@@ -219,7 +219,9 @@ func (a *CommonAPI) Closing(ctx context.Context) (<-chan struct{}, error) {
 }
 
 
-type RPCSystemExtensionAPI struct {}
+type RPCSystemExtensionAPI struct {
+	fx.In
+}
 
 func (a *RPCSystemExtensionAPI) Discover(ctx context.Context) (*meta_schema.OpenrpcDocument, error) {
 	commonPermStruct := &apistruct.CommonStruct{}
