@@ -110,9 +110,9 @@ func NewWalletRPC(ctx context.Context, addr string, requestHeader http.Header) (
 }
 
 // NewRPCSystemExtensionRPC returns a new RPC system extension API thingey.
-func NewRPCSystemExtensionRPC(addr string, requestHeader http.Header) (api.RPCSystemExtension, jsonrpc.ClientCloser, error) {
+func NewRPCSystemExtensionRPC(ctx context.Context, addr string, requestHeader http.Header) (api.RPCSystemExtension, jsonrpc.ClientCloser, error) {
 	var res apistruct.RPCSystemExtensionStruct
-	closer, err := jsonrpc.NewMergeClient(addr, "rpc",
+	closer, err := jsonrpc.NewMergeClient(ctx, addr, "rpc",
 		[]interface{}{
 			&res.Internal,
 		},
