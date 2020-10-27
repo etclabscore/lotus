@@ -42,6 +42,12 @@ func MetricedGatewayAPI(a api.GatewayAPI) api.GatewayAPI {
 	return &out
 }
 
+func MetricedRPCSystemExtension(a api.RPCSystemExtension) api.RPCSystemExtension {
+	var out apistruct.RPCSystemExtensionStruct
+	proxy(a, &out.Internal)
+	return &out
+}
+
 func proxy(in interface{}, out interface{}) {
 	rint := reflect.ValueOf(out).Elem()
 	ra := reflect.ValueOf(in)
