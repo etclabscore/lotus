@@ -31,6 +31,12 @@ func PermissionedFullAPI(a api.FullNode) api.FullNode {
 	return &out
 }
 
+func PermissionedRPCSystemExtensionAPI(a api.RPCSystemExtension) api.RPCSystemExtension {
+	var out RPCSystemExtensionStruct
+	auth.PermissionedProxy(AllPermissions, DefaultPerms, a, &out.Internal)
+	return &out
+}
+
 func PermissionedWorkerAPI(a api.WorkerAPI) api.WorkerAPI {
 	var out WorkerStruct
 	auth.PermissionedProxy(AllPermissions, DefaultPerms, a, &out.Internal)
