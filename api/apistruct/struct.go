@@ -1626,3 +1626,4 @@ var _ api.StorageMiner = &StorageMinerStruct{}
 var _ api.WorkerAPI = &WorkerStruct{}
 var _ api.GatewayAPI = &GatewayStruct{}
 var _ api.WalletAPI = &WalletStruct{}
+var _ api.RPCSystemExtension = &RPCSystemExtensionStruct{}
