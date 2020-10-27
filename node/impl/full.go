@@ -28,6 +28,7 @@ type FullNodeAPI struct {
 	full.MsigAPI
 	full.WalletAPI
 	full.SyncAPI
+	common.RPCSystemExtensionAPI
 	full.BeaconAPI
 
 	DS dtypes.MetadataDS

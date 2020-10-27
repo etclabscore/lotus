@@ -1,163 +1,25 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
+	"log"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
-	"os/signal"
 	"reflect"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/alecthomas/jsonschema"
 	go_openrpc_reflect "github.com/etclabscore/go-openrpc-reflect"
-	"github.com/filecoin-project/lotus/build"
-	"github.com/filecoin-project/lotus/node/impl/common"
-	"github.com/ipfs/go-cid"
-	logging "github.com/ipfs/go-log/v2"
-	"github.com/multiformats/go-multiaddr"
-	manet "github.com/multiformats/go-multiaddr/net"
-	meta_schema "github.com/open-rpc/meta-schema"
-	"go.opencensus.io/tag"
-	"golang.org/x/xerrors"
-
-	"contrib.go.opencensus.io/exporter/prometheus"
-
-	"github.com/filecoin-project/go-jsonrpc"
-	"github.com/filecoin-project/go-jsonrpc/auth"
-
-	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/apistruct"
-	"github.com/filecoin-project/lotus/metrics"
-	"github.com/filecoin-project/lotus/node"
-	"github.com/filecoin-project/lotus/node/impl"
+	"github.com/filecoin-project/lotus/build"
+	meta_schema "github.com/open-rpc/meta-schema"
 )
-
-var log = logging.Logger("main")
-
-type RPCDiscovery struct {
-	doc *go_openrpc_reflect.Document
-}
-
-func (d *RPCDiscovery) Discover() (*meta_schema.OpenrpcDocument, error) {
-	return d.doc.Discover()
-}
-
-func serveRPC(a api.FullNode, stop node.StopFunc, addr multiaddr.Multiaddr, shutdownCh <-chan struct{}) error {
-	rpcServer := jsonrpc.NewServer()
-	fullAPI := apistruct.PermissionedFullAPI(metrics.MetricedFullAPI(a))
-	rpcServer.Register("Filecoin", fullAPI)
-
-	doc := newOpenRPCDocument()
-
-	doc.RegisterReceiverName("Filecoin", fullAPI)
-
-	rpcServer.Register("rpc", &RPCDiscovery{doc})
-
-	ah := &auth.Handler{
-		Verify: a.AuthVerify,
-		Next:   rpcServer.ServeHTTP,
-	}
-
-	http.Handle("/rpc/v0", ah)
-
-	importAH := &auth.Handler{
-		Verify: a.AuthVerify,
-		Next:   handleImport(a.(*impl.FullNodeAPI)),
-	}
-
-	http.Handle("/rest/v0/import", importAH)
-
-	exporter, err := prometheus.NewExporter(prometheus.Options{
-		Namespace: "lotus",
-	})
-	if err != nil {
-		log.Fatalf("could not create the prometheus stats exporter: %v", err)
-	}
-
-	http.Handle("/debug/metrics", exporter)
-
-	lst, err := manet.Listen(addr)
-	if err != nil {
-		return xerrors.Errorf("could not listen: %w", err)
-	}
-
-	srv := &http.Server{
-		Handler: http.DefaultServeMux,
-		BaseContext: func(listener net.Listener) context.Context {
-			ctx, _ := tag.New(context.Background(), tag.Upsert(metrics.APIInterface, "lotus-daemon"))
-			return ctx
-		},
-	}
-
-	sigCh := make(chan os.Signal, 2)
-	shutdownDone := make(chan struct{})
-	go func() {
-		select {
-		case sig := <-sigCh:
-			log.Warnw("received shutdown", "signal", sig)
-		case <-shutdownCh:
-			log.Warn("received shutdown")
-		}
-
-		log.Warn("Shutting down...")
-		if err := srv.Shutdown(context.TODO()); err != nil {
-			log.Errorf("shutting down RPC server failed: %s", err)
-		}
-		if err := stop(context.TODO()); err != nil {
-			log.Errorf("graceful shutting down failed: %s", err)
-		}
-		log.Warn("Graceful shutdown successful")
-		_ = log.Sync() //nolint:errcheck
-		close(shutdownDone)
-	}()
-	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
-
-	err = srv.Serve(manet.NetListener(lst))
-	if err == http.ErrServerClosed {
-		<-shutdownDone
-		return nil
-	}
-	return err
-}
-
-func handleImport(a *impl.FullNodeAPI) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "PUT" {
-			w.WriteHeader(404)
-			return
-		}
-		if !auth.HasPerm(r.Context(), nil, apistruct.PermWrite) {
-			w.WriteHeader(401)
-			_ = json.NewEncoder(w).Encode(struct{ Error string }{"unauthorized: missing write permission"})
-			return
-		}
-
-		c, err := a.ClientImportLocal(r.Context(), r.Body)
-		if err != nil {
-			w.WriteHeader(500)
-			_ = json.NewEncoder(w).Encode(struct{ Error string }{err.Error()})
-			return
-		}
-		w.WriteHeader(200)
-		err = json.NewEncoder(w).Encode(struct{ Cid cid.Cid }{c})
-		if err != nil {
-			log.Errorf("/rest/v0/import: Writing response failed: %+v", err)
-			return
-		}
-	}
-}
-
-
-var _ api.Common = &common.CommonAPI{}
 
 var comments, groupDocs = parseApiASTInfo()
 
@@ -231,6 +93,40 @@ func newOpenRPCDocument() *go_openrpc_reflect.Document {
 	// Finally, register the configured reflector to the document.
 	d.WithReflector(appReflector)
 	return d
+}
+
+func main() {
+	commonPermStruct := &apistruct.CommonStruct{}
+	fullStruct := &apistruct.FullNodeStruct{}
+
+	doc := newOpenRPCDocument()
+
+	doc.RegisterReceiverName("common", commonPermStruct)
+	doc.RegisterReceiverName("full", fullStruct)
+
+	out, err := doc.Discover()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	jsonOut, err := json.MarshalIndent(out, "", "    ")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = ioutil.WriteFile("/tmp/lotus-openrpc-spec.json", jsonOut, os.ModePerm)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(string(jsonOut))
+
+	// fmt.Println("---- (Comments?) Out:")
+	// // out2, groupDocs := parseApiASTInfo()
+	// out2, _ := parseApiASTInfo()
+	// out2JSON, _ := json.MarshalIndent(out2, "", "    ")
+	// fmt.Println(string(out2JSON))
+	// fmt.Println("---- (Group Comments?):")
+	// groupDocsJSON, _ := json.MarshalIndent(groupDocs, "", "    ")
+	// fmt.Println(string(groupDocsJSON))
 }
 
 

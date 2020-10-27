@@ -11,6 +11,7 @@ import (
 	metrics "github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	meta_schema "github.com/open-rpc/meta-schema"
 	protocol "github.com/libp2p/go-libp2p-core/protocol"
 
 	"github.com/filecoin-project/go-address"
@@ -373,6 +374,16 @@ type WorkerStruct struct {
 
 		Closing func(context.Context) (<-chan struct{}, error) `perm:"admin"`
 	}
+}
+
+type RPCSystemExtensionStruct struct {
+	Internal struct {
+		Discover func(context.Context) (*meta_schema.OpenrpcDocument, error) `perm:"read"`
+	}
+}
+
+func (r *RPCSystemExtensionStruct) Discover (ctx context.Context) (*meta_schema.OpenrpcDocument, error) {
+	return r.Internal.Discover(ctx)
 }
 
 type GatewayStruct struct {
@@ -1615,3 +1626,4 @@ var _ api.StorageMiner = &StorageMinerStruct{}
 var _ api.WorkerAPI = &WorkerStruct{}
 var _ api.GatewayAPI = &GatewayStruct{}
 var _ api.WalletAPI = &WalletStruct{}
+var _ api.RPCSystemExtension = &RPCSystemExtensionStruct{}
